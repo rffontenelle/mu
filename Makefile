@@ -1,6 +1,7 @@
 XARGS := xargs -0 $(shell test $$(uname) = Linux && echo -r)
 GREP_T_FLAG := $(shell test $$(uname) = Linux && echo -T)
 export PYFLAKES_BUILTINS=_
+PYTHON := python3
 
 all:
 	@echo "\nThere is no default Makefile target right now. Try:\n"
@@ -45,7 +46,7 @@ run: clean
 ifeq ($(VIRTUAL_ENV),)
 	@echo "\n\nCannot run Mu. Your Python virtualenv is not activated."
 else
-	python run.py
+	$(PYTHON) run.py
 endif
 
 flake8:
@@ -60,16 +61,16 @@ coverage: clean
 	pytest -v --random-order --cov-config .coveragerc --cov-report term-missing --cov=mu tests/
 
 tidy: 
-	python make.py tidy
+	$(PYTHON) make.py tidy
 
 black:
-	python make.py black
+	$(PYTHON) make.py black
 
 check: clean black flake8 coverage
 
 dist: check
 	@echo "\nChecks pass, good to package..."
-	python setup.py sdist bdist_wheel
+	$(PYTHON) setup.py sdist bdist_wheel
 
 publish-test: dist
 	@echo "\nPackaging complete... Uploading to PyPi..."
@@ -86,27 +87,27 @@ docs: clean
 	@echo "\n"
 
 translate_begin:
-	@python make.py translate_begin LANG=$(LANG)
+	@$(PYTHON) make.py translate_begin LANG=$(LANG)
 
 translate_done:
-	@python make.py translate_done LANG=$(LANG)
+	@$(PYTHON) make.py translate_done LANG=$(LANG)
 
 translate_test:
-	@python make.py translate_test LANG=$(LANG)
+	@$(PYTHON) make.py translate_test LANG=$(LANG)
 
 win32: check
 	@echo "\nBuilding 32bit Windows MSI installer."
-	python make.py win32
+	$(PYTHON) make.py win32
 
 win64: check
 	@echo "\nBuilding 64bit Windows MSI installer."
-	python make.py win64
+	$(PYTHON) make.py win64
 
 macos: check
 	@echo "\nFetching wheels."
-	python -m mu.wheels
+	$(PYTHON) -m mu.wheels
 	@echo "\nPackaging Mu into a macOS native application."
-	python -m virtualenv venv-pup
+	$(PYTHON) -m virtualenv venv-pup
 	# Don't activate venv-pup because:
 	# 1. Not really needed.
 	# 2. Previously active venv would be "gone" on venv-pup deactivation.
@@ -122,6 +123,6 @@ macos: check
 
 video: clean
 	@echo "\nFetching contributor avatars."
-	python utils/avatar.py
+	$(PYTHON) utils/avatar.py
 	@echo "\nMaking video of source commits."
 	gource --user-image-dir .git/avatar/ --title "The Making of Mu" --logo docs/icon_small.png --font-size 24 --file-idle-time 0 --key -1280x720 -s 0.1 --auto-skip-seconds .1 --multi-sampling --stop-at-end --hide mouse,progress --output-ppm-stream - --output-framerate 30 | ffmpeg -y -r 30 -f image2pipe -vcodec ppm -i - -b 65536K movie.mp4
